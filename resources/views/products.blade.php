@@ -24,7 +24,8 @@
                 @foreach ($companies as $company)
                 <!-- <option value="{{ $company->id }}">{{ $company->company_name }}</option> -->
                 <option value="{{ $company->id }}" {{ (request('company_name') == $company->id) ? 'selected' : '' }}>
-                    {{ $company->company_name }}</option>
+                    {{ $company->company_name }}
+                </option>
                 @endforeach
                 <!-- apache_child_terminate  -->
             </select>
@@ -48,7 +49,7 @@
         @foreach ($products as $products)
         <tr>
             <td>{{$products->id}}</td>
-            <td>{{$products->img_path}}</td>
+            <td><img src="{{ Storage::url($products->img_path)}}" alt=""></td>
             <td>{{$products->product_name}}</td>
             <td>{{$products->price}}円</td>
             <td>{{$products->stock}}</td>
@@ -60,7 +61,7 @@
                 <form action="{{ route('products.destroy', ['product' => $products->id]) }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger" onclick='return confirm ("本当に削除しますか?")' >削除</button>
+                    <button type="submit" class="btn btn-danger" onclick='return confirm ("本当に削除しますか?")'>削除</button>
                 </form>
             </td>
         </tr>

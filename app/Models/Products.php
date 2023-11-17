@@ -22,12 +22,11 @@ class Products extends Model
         'stock',
         'comment',
         'img_path'
-        // 他に設定する必要があるフィールドをここに追加してください
     ];
 
     protected $attributes = [
         'img_path' => '商品画像', // デフォルトの画像ファイル名を設定
-        'comment' => 'デフォルト'
+        'comment' => ''
     ];
 
 

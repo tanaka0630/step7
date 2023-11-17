@@ -24,8 +24,8 @@ class CompaniesController extends Controller
      */
     public function create()
     {
-        $companies = Companies::all();
-        return view('create')->with('companies',$companies);
+        // $companies = Companies::all();
+        // return view('create')->with('companies',$companies);
     }
 
     /**

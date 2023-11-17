@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\CompaniesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,11 +22,7 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-//Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
 //商品一覧画面を表示する
-use App\Http\Controllers\ProductsController;
 Route::resource('products', ProductsController::class);
-// Route::get('create',[App\Http\Controllers\ProductsController::class,'create'])->name('create');
-use App\Http\Controllers\CompaniesController;
+
 Route::resource('companies', CompaniesController::class);

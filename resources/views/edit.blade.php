@@ -25,7 +25,9 @@
             <select name="company_id" id="company_id">
                
                 @foreach ($companies as $company)
-                <option value="{{ $company->id }}" id="" company_id>{{ $company->company_name }}</option>
+                <option value="{{ $company->id }}" {{ $product->company_id == $company->id ? 'selected' : '' }} > 
+                    {{ $company->company_name }}
+                </option>
                 @endforeach
             </select>
         </div>

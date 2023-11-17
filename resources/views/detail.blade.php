@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>詳細画面</title>
+
 </head>
 
 <body>
@@ -17,7 +18,7 @@
         </tr>
         <tr>
             <th>商品画像</th>
-            <td>{{$products->img_path}}</td>
+            <td><img src="{{ Storage::url($products->img_path)}}" alt=""></td>
         </tr>
         <tr>
             <th>商品名</th>

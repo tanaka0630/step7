@@ -6,6 +6,7 @@ use App\Models\Products;
 use App\Models\Companies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\ItemNotFoundException;
 
 class ProductsController extends Controller
 {
@@ -33,6 +34,7 @@ class ProductsController extends Controller
 
         $products = $query->get();
 
+
         // 検索結果をビューに渡す
         return view('products', compact('products', 'companies'));
     }
@@ -44,8 +46,10 @@ class ProductsController extends Controller
      */
     public function create()
     {
-        // 会社名のデータを取得（適切な方法でデータを取得してください）
         $companies = Companies::all(); // 例: Company モデルを使って会社名データを取得する
+
+
+
 
         return view('create', compact('companies'));
     }
@@ -59,6 +63,29 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
 
+        // 画像フォームでリクエストした画像を取得
+        $image = $request->file('img_path');
+        $dd = $image;
+
+        // 画像情報がセットされていれば、保存処理を実行
+        //  if (isset($image)) {
+        //      // storage > public > img配下に画像が保存される
+        //      $path = $image->store('image','public');
+        //      // store処理が実行できたらDBに保存処理を実行
+        //      if ($path) {
+        //          // DBに登録する処理
+        //          Products::create([
+        //              'img_path' => $path,
+        //          ]);
+        //      }
+        //  }
+
+        if ($request->hasFile('img_path')) {
+            $path = \Storage::put('/public', $image);
+            $path = explode('/', $path);
+        } else {
+            $path = null;
+        }
 
         $request->validate([
             'product_name' => 'required',
@@ -67,23 +94,22 @@ class ProductsController extends Controller
             'stock' => 'required|numeric',
             'comment' => 'nullable',
             'img_path' => 'nullable|image',
-            // 他のフィールドに関するバリデーションルールを追加
         ]);
 
-        // 'comment' フィールドが送信されていない場合、デフォルトの値を設定
-        if (!isset($data['comment'])) {
-            $request->merge(['comment' => 'デフォルトコメント']); // デフォルトのコメントを設定
-        }
 
         // フォームデータから新しい商品を作成
-        $product = Products::create($request->all());
-        // $company = Companies::all();
+        $product = Products::create([
+            'product_name' => $request->input('product_name'),
+            'company_id' => $request->input('company_id'),
+            'price' => $request->input('price'),
+            'stock' => $request->input('stock'),
+            'comment' => $request->input('comment'),
+            'img_path' => $path ? $path[1] : 'default_image_path', // デフォルトの画像パスを指定
 
+        ]);
 
         return redirect()->route('products.index')
             ->with('success', '商品が新規登録されました');
-        // return redirect()->route('products.index');
-
     }
 
     /**
@@ -125,6 +151,18 @@ class ProductsController extends Controller
         // データベースを更新
         $product = Products::find($id);
         $product->fill($request->all());
+
+
+        // 画像がアップロードされている場合の処理
+        if ($request->hasFile('img_path')) {
+            // 以前の画像を削除する（オプション）
+            // Storage::delete($product->img_path);
+
+            // 新しい画像を保存
+            $path = $request->file('img_path')->store('images', 'public');
+            $product->img_path = $path;
+        }
+
         $product->save();
 
         $company = Companies::find($request->input('company_id')); // メーカー情報を取得

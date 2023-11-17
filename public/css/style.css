@@ -4,33 +4,34 @@
 table {
     width: 80%;
     margin: 30px auto;
-  text-align: center;
+    text-align: center;
+    margin: 0 auto;
 }
 
 th {
     padding: 10px;
-    
     border: 1px solid #000;
 }
 
 td {
     padding: 10px;
-   
+    
+
 }
 
 a {
     color: inherit;
     text-decoration: none;
-  }
+}
 
-.btn_create{
+.btn_create {
     border: 1px solid #000;
     border-radius: 5%;
     padding: 10px;
     background: orange;
 }
 
-.btn_create:hover{
+.btn_create:hover {
     color: orange;
     background: #fff;
 }
@@ -38,4 +39,8 @@ a {
 .search {
     margin: 30px auto;
     text-align: center;
+}
+
+img {
+    width: 100px;
 }
