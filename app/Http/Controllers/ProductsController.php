@@ -62,54 +62,45 @@ class ProductsController extends Controller
      */
     public function store(Request $request)
     {
-
-        // 画像フォームでリクエストした画像を取得
-        $image = $request->file('img_path');
-        $dd = $image;
-
-        // 画像情報がセットされていれば、保存処理を実行
-        //  if (isset($image)) {
-        //      // storage > public > img配下に画像が保存される
-        //      $path = $image->store('image','public');
-        //      // store処理が実行できたらDBに保存処理を実行
-        //      if ($path) {
-        //          // DBに登録する処理
-        //          Products::create([
-        //              'img_path' => $path,
-        //          ]);
-        //      }
-        //  }
-
-        if ($request->hasFile('img_path')) {
-            $path = \Storage::put('/public', $image);
-            $path = explode('/', $path);
-        } else {
-            $path = null;
-        }
-
-        $request->validate([
+        // バリデーションルール
+        $rules = [
             'product_name' => 'required',
             'company_id' => 'required',
             'price' => 'required|numeric',
             'stock' => 'required|numeric',
             'comment' => 'nullable',
             'img_path' => 'nullable|image',
-        ]);
+        ];
 
+        // バリデーションメッセージ
+        $messages = [
+            'required' => '*必須項目です。',
+            'numeric' => '*必須項目です',
+        ];
 
-        // フォームデータから新しい商品を作成
-        $product = Products::create([
-            'product_name' => $request->input('product_name'),
-            'company_id' => $request->input('company_id'),
-            'price' => $request->input('price'),
-            'stock' => $request->input('stock'),
-            'comment' => $request->input('comment'),
-            'img_path' => $path ? $path[1] : 'default_image_path', // デフォルトの画像パスを指定
+        // バリデーション実行
+        $request->validate($rules, $messages);
 
-        ]);
+        // トランザクション開始
+        DB::beginTransaction();
 
-        return redirect()->route('products.index')
-            ->with('success', '商品が新規登録されました');
+        try {
+            // モデルの処理を呼び出して商品を保存
+            $product = Products::storeProduct($request);
+
+            // トランザクションコミット
+            DB::commit();
+
+            return redirect()->route('products.index')
+                ->with('success', '商品が新規登録されました');
+        } catch (\Exception $e) {
+            // エラーが発生した場合はトランザクションロールバック
+            DB::rollBack();
+
+            return redirect()->route('products.index')
+                ->with('error', '商品の新規登録に失敗しました')
+                ->withErrors($e->getMessage());
+        }
     }
 
     /**
@@ -148,30 +139,26 @@ class ProductsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // データベースを更新
-        $product = Products::find($id);
-        $product->fill($request->all());
+        // トランザクション開始
+        DB::beginTransaction();
 
+        try {
+            // モデルの処理を呼び出して商品を更新
+            $product = Products::updateProduct($request, $id);
 
-        // 画像がアップロードされている場合の処理
-        if ($request->hasFile('img_path')) {
-            // 以前の画像を削除する（オプション）
-            // Storage::delete($product->img_path);
+            // トランザクションコミット
+            DB::commit();
 
-            // 新しい画像を保存
-            $path = $request->file('img_path')->store('images', 'public');
-            $product->img_path = $path;
+            return redirect()->route('products.index')
+                ->with('success', '商品情報が更新されました');
+        } catch (\Exception $e) {
+            // エラーが発生した場合はトランザクションロールバック
+            DB::rollBack();
+
+            return redirect()->route('products.index')
+                ->with('error', '商品情報の更新に失敗しました')
+                ->withErrors($e->getMessage());
         }
-
-        $product->save();
-
-        $company = Companies::find($request->input('company_id')); // メーカー情報を取得
-        $company->fill($request->all());
-        $company->save();
-
-        // 更新が成功したらリダイレクト
-        return redirect()->route('products.index')
-            ->with('success', '商品情報が更新されました');
     }
 
     /**
@@ -182,13 +169,29 @@ class ProductsController extends Controller
      */
     public function destroy($id)
     {
-        $product = Products::find($id);
+        DB::beginTransaction();
 
-        if ($product) {
-            $product->delete();
-            return redirect()->route('products.index')->with('success', '商品が削除されました');
-        } else {
-            return redirect()->route('products.index')->with('error', '商品が見つかりません');
+        try {
+            $product = Products::find($id);
+
+            if ($product) {
+                $product->delete();
+
+                // トランザクションコミット
+                DB::commit();
+
+                return redirect()->route('products.index')->with('success', '商品が削除されました');
+            } else {
+                // 商品が見つからない場合もトランザクションロールバック
+                DB::rollBack();
+
+                return redirect()->route('products.index')->with('error', '商品が見つかりません');
+            }
+        } catch (\Exception $e) {
+            // エラーが発生した場合はトランザクションロールバック
+            DB::rollBack();
+
+            return redirect()->route('products.index')->with('error', '商品の削除に失敗しました');
         }
     }
 }

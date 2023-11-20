@@ -11,6 +11,8 @@ table {
 th {
     padding: 10px;
     border: 1px solid #000;
+    width: 15%;
+    
 }
 
 td {
@@ -42,5 +44,12 @@ a {
 }
 
 img {
-    width: 100px;
+   width: 100px;
+   
+}
+
+.alert {
+    color: red;
+    display: inline;
+ font-size: .75rem;
 }

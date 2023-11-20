@@ -30,16 +30,44 @@ class Products extends Model
     ];
 
 
-    public function registProducts($data)
+    public static function storeProduct($request)
     {
+        $image = $request->file('img_path');
+        $path = null;
 
-        DB::table('products')->insert([
-            'product_name' => $data->product_name,
-            'company_name' => $data->id,
-            'price' => $data->price,
-            'stock' => $data->stock,
-            'comment' => $data->comment,
-            'img_path' => $data->img_path
+        if ($request->hasFile('img_path')) {
+            $path = \Storage::put('/public', $image);
+            $path = explode('/', $path);
+        }
+
+        return self::create([
+            'product_name' => $request->input('product_name'),
+            'company_id' => $request->input('company_id'),
+            'price' => $request->input('price'),
+            'stock' => $request->input('stock'),
+            'comment' => $request->input('comment'),
+            'img_path' => $path ? $path[1] : 'default_image_path',
         ]);
     }
+
+    public static function updateProduct($request, $id)
+    {
+        $product = self::find($id);
+        $product->fill($request->all());
+
+        // 画像がアップロードされている場合の処理
+        if ($request->hasFile('img_path')) {
+            // 以前の画像を削除する（オプション）
+            // Storage::delete($product->img_path);
+
+            // 新しい画像を保存
+            $path = $request->file('img_path')->store('images', 'public');
+            $product->img_path = $path;
+        }
+
+        $product->save();
+
+        return $product;
+    }
+    
 }

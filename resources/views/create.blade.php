@@ -4,17 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <title></title>
 </head>
 
 <body>
     <h1>新規登録画面</h1>
     <div>
+
         <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div>
                 <label for="product_name">商品名</label>
                 <input type="text" name="product_name" required>
+                @error('product_name')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
             </div>
             <div>
                 <label for="company_id">メーカー名</label>
@@ -25,14 +30,28 @@
                     @endforeach
                 </select>
 
+                @error('company_id')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+
             </div>
             <div>
                 <label for="">価格</label>
                 <input type="number" name="price">
+
+                @error('price')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+
             </div>
             <div>
                 <label for="">在庫数</label>
                 <input type="number" name="stock">
+
+                @error('stock')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+
             </div>
             <div>
                 <label for="">コメント</label>
