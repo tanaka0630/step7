@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Sales;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SalesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/purchase/{id}',[SalesController::class,'purchase']);
+// 紀谷さんに教えてもらった書き方に直してみる。こんな感じ Route::delete('/destroy/{id}',[ProductsController::class,'destroy']); 
+

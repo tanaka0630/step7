@@ -7,6 +7,7 @@ use App\Models\Companies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ItemNotFoundException;
+use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller
 {
@@ -19,10 +20,32 @@ class ProductsController extends Controller
     {
         $companies = Companies::all();
 
+        $query = Products::query();
+
+        $products = $query->orderBy('created_at', 'desc')->get();
+
+
+        // 検索結果をビューに渡す
+        return view('products', compact('products', 'companies'));
+
+    }
+
+    public function search(Request $request){
+
+        $companies = Companies::all();
+
         $keyword = $request->input('keyword');
         $companyName = $request->input('company_name');
 
+
+        $priceUpper = $request->input('price_upper');
+        $priceLower = $request->input('price_lower');
+        $stockUpper = $request->input('stock_upper');
+        $stockLower = $request->input('stock_lower');
+
         $query = Products::query();
+
+        // $products = $query->orderBy('created_at', 'desc')->get();
 
         if (!empty($keyword)) {
             $query->where('product_name', 'like', '%' . $keyword . '%');
@@ -32,11 +55,28 @@ class ProductsController extends Controller
             $query->where('company_id', $companyName);
         }
 
-        $products = $query->get();
+        if (!empty($priceUpper)) {
+            $query->where('price', '<=', $priceUpper);
+        }
+        if (!empty($priceLower)) {
+            $query->where('price', '>=', $priceLower);
+        }
+        if (!empty($stockUpper)) {
+            $query->where('stock', '<=', $stockUpper);
+        }
+        if (!empty($stockLower)) {
+            $query->where('stock', '>=', $stockLower);
+        }
 
+        $products = $query->sortable()->get();
+        Log::info($products);
 
         // 検索結果をビューに渡す
         return view('products', compact('products', 'companies'));
+
+
+        // return response()->json(['products' => $products],200);
+
     }
 
     /**
@@ -47,10 +87,6 @@ class ProductsController extends Controller
     public function create()
     {
         $companies = Companies::all(); // 例: Company モデルを使って会社名データを取得する
-
-
-
-
         return view('create', compact('companies'));
     }
 
@@ -180,18 +216,18 @@ class ProductsController extends Controller
                 // トランザクションコミット
                 DB::commit();
 
-                return redirect()->route('products.index')->with('success', '商品が削除されました');
+                return response()->json(['message' => '商品が削除されました', 'deleteProductId' => $id]);
             } else {
                 // 商品が見つからない場合もトランザクションロールバック
                 DB::rollBack();
 
-                return redirect()->route('products.index')->with('error', '商品が見つかりません');
+                return response()->json(['error' => '商品が見つかりません'], 404);
             }
         } catch (\Exception $e) {
             // エラーが発生した場合はトランザクションロールバック
             DB::rollBack();
 
-            return redirect()->route('products.index')->with('error', '商品の削除に失敗しました');
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 use Illuminate\Support\Facades\DB;
 
 class Products extends Model
 {
-    use HasFactory;
+    use HasFactory,Sortable;
 
     public function company()
     {
@@ -25,7 +26,7 @@ class Products extends Model
     ];
 
     protected $attributes = [
-        'img_path' => '商品画像', // デフォルトの画像ファイル名を設定
+        'img_path' => '商品画像.jpg', // デフォルトの画像ファイル名を設定
         'comment' => ''
     ];
 
@@ -69,5 +70,5 @@ class Products extends Model
 
         return $product;
     }
-    
+
 }
