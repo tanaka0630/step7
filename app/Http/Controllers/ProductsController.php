@@ -20,23 +20,8 @@ class ProductsController extends Controller
     {
         $companies = Companies::all();
 
-        $query = Products::query();
-
-        $products = $query->orderBy('created_at', 'desc')->get();
-
-
-        // 検索結果をビューに渡す
-        return view('products', compact('products', 'companies'));
-
-    }
-
-    public function search(Request $request){
-
-        $companies = Companies::all();
-
         $keyword = $request->input('keyword');
         $companyName = $request->input('company_name');
-
 
         $priceUpper = $request->input('price_upper');
         $priceLower = $request->input('price_lower');
@@ -46,6 +31,7 @@ class ProductsController extends Controller
         $query = Products::query();
 
         // $products = $query->orderBy('created_at', 'desc')->get();
+
 
         if (!empty($keyword)) {
             $query->where('product_name', 'like', '%' . $keyword . '%');
@@ -69,14 +55,76 @@ class ProductsController extends Controller
         }
 
         $products = $query->sortable()->get();
-        Log::info($products);
+        // Log::info($products);
+
+
+        if ($request->ajax()){
+            return response()->json(['products' => $products],200);
+        }
+
 
         // 検索結果をビューに渡す
         return view('products', compact('products', 'companies'));
+        
+
+        
+
+    }
+
+    public function search(Request $request){
+        Log::info($request);
+
+        $companies = Companies::all();
+
+        $keyword = $request->input('keyword');
+        $companyName = $request->input('company_name');
 
 
-        // return response()->json(['products' => $products],200);
+        $priceUpper = $request->input('price_upper');
+        $priceLower = $request->input('price_lower');
+        $stockUpper = $request->input('stock_upper');
+        $stockLower = $request->input('stock_lower');
 
+        $query = Products::query();
+
+        $products = $query->orderBy('created_at', 'desc')->get();
+
+        if (!empty($keyword)) {
+            $query->where('product_name', 'like', '%' . $keyword . '%');
+        }
+
+        if (!empty($companyName)) {
+            $query->where('company_id', $companyName);
+        }
+
+        if (!empty($priceUpper)) {
+            $query->where('price', '<=', $priceUpper);
+        }
+        if (!empty($priceLower)) {
+            $query->where('price', '>=', $priceLower);
+        }
+        if (!empty($stockUpper)) {
+            $query->where('stock', '<=', $stockUpper);
+        }
+        if (!empty($stockLower)) {
+            $query->where('stock', '>=', $stockLower);
+        }
+
+        
+
+        $products = $query->with('company')->sortable()->get();
+
+        Log::info($products);
+        
+
+        //検索結果をビューに渡す
+        if ($request->ajax()) {
+            return response()->json(['products' => $products->toArray()], 200);
+        }
+
+        return view('products', compact('products', 'companies'));
+
+        Log::info($companyName);
     }
 
     /**
@@ -148,6 +196,13 @@ class ProductsController extends Controller
     public function show($id)
     {
         $product = Products::find($id);
+
+        if ($product === null) {
+            echo('詳細');
+            abort(404, 'Product not found');
+        }
+
+
         return view('detail', compact('product'))->with('products', $product);
     }
 

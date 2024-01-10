@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class Products extends Model
 {
-    use HasFactory,Sortable;
+    use HasFactory, Sortable;
 
     public function company()
     {
@@ -29,6 +29,12 @@ class Products extends Model
         'img_path' => '商品画像.jpg', // デフォルトの画像ファイル名を設定
         'comment' => ''
     ];
+
+
+    public function sales()
+    {
+        return $this->hasMany(Sales::class);
+    }
 
 
     public static function storeProduct($request)
@@ -70,5 +76,4 @@ class Products extends Model
 
         return $product;
     }
-
 }

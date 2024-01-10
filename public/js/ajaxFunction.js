@@ -1,101 +1,92 @@
-// $(document).ready(function(){
 
-const { find } = require("lodash");
+// const { find } = require("lodash");
 
-//     window.deleteProduct = function(id){
-//         if(confirm('本当に削除しますか？')){
-//             $.ajax({
-//                 type:'DELETE', //getかpostにする。deleteでもいいけど前述の二つ以外は全ブラウザでサポートされていない。
-//                 url:'/products/' + id,
-//                 dataType:'json',
-//                 headers:{'X-CSRF-TOKEN' : $('meta[name="csrf-token"]').attr('content')},
-//                 success:function(data){
-//                     console.log('削除に成功しました。')
-//                     // window.location.href = "/products";
-//                     $('#product_' + id).hide();
-//                     // alert(data.message); // 成功メッセージの表示
-//                 },
-//                 error:function(data){
-//                     console.log('Error:' , data);
-//                     alert(data.responseJSON.error); // エラーメッセージの表示
-//                 }
-//             });
-//         }
-//     }
-// });
+// const { functionsIn } = require("lodash");
 
 
-
-
-
-// $.ajaxSetup({
-//     headers:{'X-CSRF-TOKEN' :'{{csrf_token()}}'}
-// });
-
-$(function(){
+$(function () {
 
     console.log("OK");
 
-    //削除機能非表示
-    $('.btn-danger').on('click',function(e){
+    //削除機能非同期
+
+    function setDeleteButtonEvent() {
+        $('.btn-danger').on('click', function (e) {
+            e.preventDefault();
+            console.log("click");
+            var deleteConfirm = confirm('削除しますか？');
+
+            if (deleteConfirm == true) {
+                var clickEle = $(this);
+                var productId = clickEle.data('id');
+                var deleteForm = $('#deleteForm-' + productId); // deleteForm の取得
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    type: 'POST',
+                    url: '/products/' + productId,
+                    dataType: 'json',
+                    data: { '_method': 'delete' },
+
+                    success: function (data) {
+                        console.log('削除に成功しました。')
+
+                        var deletedRow = deleteForm.closest('tr');
+                        deletedRow.remove();
+
+                    }
+                });
+
+            }
+        });
+    }
+
+    //検索機能非同期
+    $('#search_form').on('submit', function (e) {
         e.preventDefault();
-        console.log("click");
-        var deleteConfirm = confirm('削除しますか？');
-
-        if(deleteConfirm == true){
-            var clickEle = $(this);
-            var productId = clickEle.data('id');
-
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                type:'POST',
-                url:'/destroy/' + productId,
-                dataType: 'json',
-                data:{'_method':'delete'},
-
-                success:function(data){
-                    console.log('削除に成功しました。')
-                    // window.location.href = "/products";
-                  let clickParent = clickEle.parents('tr');
-                  clickParent.remove();
-                    // alert(data.message); // 成功メッセージの表示
-                }
-            });
-            
-        }
-    });
-
-    //検索機能非表示
-    $('#search_form').on('submit', function(event){
-        event.preventDefault();
 
         console.log('検索');
         var keyword = $('#keyword').val();
+        var company_name = $('select[name="company_name"] option:selected').val();
+        var price_upper = $('#price_upper').val();
+        var price_lower = $('#price_lower').val();
+        var stock_upper = $('#stock_upper').val();
+        var stock_lower = $('#stock_lower').val();
 
+        console.log('メーカー', company_name);
 
         $.ajax({
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
             },
-            type:'GET',
-            url:'products/search',
-            dataType:'html',
-            data:{
+            type: 'GET',
+            url: 'search',
+            dataType: 'json',
+            data: {
                 '_token': $('meta[name="csrf-token"]').attr('content'),
-            'keyword': keyword
-        },
+                'keyword': keyword,
+                'company_name': company_name,  // 'company_name' フィールドを追加
+                'price_upper': price_upper,    // 他の入力フィールドについても同様に追加
+                'price_lower': price_lower,
+                'stock_upper': stock_upper,
+                'stock_lower': stock_lower,
+                'ajax': true
+            },
             // data:{'_method':'search'},
-            success:function(data){
+            success: function (data) {
 
                 console.log('成功');
-              let newtable = $(data).find('#result_table');
-
-              $('#result_table').html(newtable);
+                console.log('テスト', data.products);
+                displaySearchResults(data.products);
             },
-            error:function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error: ' + errorThrown);
+                console.log("ajax通信に失敗しました");
+                console.log("jqXHR          : " + jqXHR.status); // HTTPステータスが取得
+                console.log("textStatus     : " + textStatus);    // タイムアウト、パースエラー
+                console.log("errorThrown    : " + errorThrown.message); // 例外情報
+                // console.log("URL            : " + url);
             }
 
         });
@@ -103,108 +94,146 @@ $(function(){
 
     });
 
-});
-
-
-
-    function displaySearchResults(products){
-
+    function displaySearchResults(products) {
         var table = $('#result_table');
-    table.empty();
 
-    // products をテーブルに追加
-    $.each(products, function(index, product) {
+        console.log(table.length, '画像');
 
-        console.log('追加');
+        table.empty();
 
-        var row = $('<tr>');
-        row.append($('<td>').text(product.id));
-        row.append($('<td>').text(product.img_path));
-        row.append($('<td>').text(product.product_name));
-        row.append($('<td>').text(product.price));
-        row.append($('<td>').text(product.stock));
-        row.append($('<td>').text(product.company_name));
-
-        table.append(row);
+        // products をテーブルに追加
+        $.each(products, function (index, product) {
+            console.log('追加');
 
 
+            var imgPath = assetPath + '/' + product.img_path;
 
-        // htmlを書く？
-        // // var html = 
-        // <tr>
-        //     <td>${product.id}</td>
-        // </tr>
-        
-
-    });
-
-}
- 
-   
+            var company_name = product.company ? product.company.company_name : '';
 
 
+            console.log('追加前img', imgPath);
+            console.log('追加前メーカー', company_name);
+            console.log(product);
+            console.log(products);
 
+            // HTML文字列を直接追加
+            var htmlString = '<tr>' +
+                '<td>' + product.id + '</td>' +
+                '<td><img src="' + imgPath + '" alt=""></td>' +
+                '<td>' + product.product_name + '</td>' +
+                '<td>' + product.price + '円</td>' +
+                '<td>' + product.stock + '</td>' +
+                '<td>' + company_name + '</td>' +
+                '<td><a href="/products/' + product.id + '">詳細</a></td>' +
+                '<td>' +
+                '<form id="deleteForm-' + product.id + '" action="/products/' + product.id + '" method="POST"> <input type="hidden" name="_method" value="DELETE">' +
+                '<button type="submit" class="btn btn-danger" data-id="' + product.id + '">削除</button>' +
+                '</form>' +
+                '</td>' +
+                '</tr>';
 
+            // console.log('生成したHTML:', htmlString);
 
+            console.log('追加後メーカー', company_name);
 
+            table.append(htmlString);
 
+            setDeleteButtonEvent();
 
-
-
-
-
-
-
-
-
-
-
-// $.ajax({
-//     type:'POST',
-//     url:'/products/' +productId,
-// }).done(function(results){
-
-// })
+            console.log('表示')
+            // console.log(imgPath);
+            // console.log(table);
+        });
 
 
 
+        // // ソート機能の初期化処理
+        // initializeSort();
+
+       
+
+
+       
+
+        // // カラムの現在のソート方向を取得する関数
+       
+
+
+    }
 
 
 
+    // function handleSortClick(column) {
+    //     var currentDirection = getSortDirection(column);
+    //     var newDirection = (currentDirection === 'asc') ? 'desc' : 'asc';
+    //     console.log('スタート');
+    //     // リクエストを送信して非同期でソート結果を取得
+    //     $.ajax({
+    //         type: 'GET',
+    //         url: 'search',
+    //         dataType: 'json',
+    //         data: {
+    //             '_token': $('meta[name="csrf-token"]').attr('content'),
+    //             'sortColumn': column,
+    //             'sortDirection': newDirection,
+    //             // 他の検索条件も必要に応じて追加
+    //         },
+    //         success: function (data) {
+    //             displaySearchResults(data.products);
+    //         },
+    //         error: function (jqXHR, textStatus, errorThrown) {
+    //             console.log('Error: ' + errorThrown);
+    //             // エラー処理
+    //         }
+    //     });
+    // }
+
+    // $('.sortable').on('click', function (event) {
+    //     event.preventDefault(); // デフォルトのイベントをキャンセル
+
+    //     console.log('クリックした');
+    //     var columnName = $(this).data('column'); // データ属性からカラム名を取得
+
+    //     console.log(columnName);
+    //     (() => {
+    //         handleSortClick(columnName);
+    //     })();
+    //     console.log('クリック後');
+    // });
+
+    // function getSortDirection(column) {
+    //     var sortHeader = $('#sort_' + column);
+    //     if (sortHeader.hasClass('asc')) {
+    //         return 'asc';
+    //     } else if (sortHeader.hasClass('desc')) {
+    //         return 'desc';
+    //     } else {
+    //         return ''; // ソートされていない場合
+    //     }
+    // }
 
 
-// $(function () {
+    // function getInitialSortColumn() {
+    //     return 'id';
+    // }
 
-//     $('#search_btn').on('click', function () {
+    // function getInitialSortOrder() {
+    //     return 'desc';
+    // }
 
-        
-
-//         $.ajax({
-//             type: 'GET', //HTTPリクエストメソッドを指定。
-//             url: '/search', //リクエスト先を送信する先のURL
-//             async: true, //非同期通信フラグ、初期値:true , falseだと同期通信になる
-//             dataType: 'json', //サーバーからレスポンスされるデータの型を指定。返ってくるデータのMIMEタイプとの整合性をとる
-//             timeout: 10000, //タイムアウト時間をミリ秒で指定
-//             data: {
-//                 id: 1,
-//                 name: 'brisk'
-//             } //サーバーに送信する値。オブジェクトが指定された場合、クエリー文字列に変換されてGETリクエストとして付加される
-//         })
-//             .done(function (data) {
-//                 //通信が成功した時の処理
-//             })
-//             .fail(function () {
-//                 //通信が失敗した時の処理
-//             })
-//             .always(function () {
-//                 //通信が完了した時の処理
-//             })
+    // function initializeSort() {
+    //     var initialSortColumn = getInitialSortColumn();
+    //     var initialSortOrder = getInitialSortOrder();
 
 
 
-//     })
+    //     if (initialSortColumn && initialSortOrder) {
+    //         var sortHeader = $('#sort_' + initialSortColumn);
+    //         sortHeader.addClass(initialSortOrder);
+    //         sortHeader.find('a').attr('href', sortHeader.find('a').attr('href') + '&direction=' + initialSortOrder);
+    //     }
 
 
+    // }
 
-
-// });
+});

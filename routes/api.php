@@ -20,6 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/purchase/{id}',[SalesController::class,'purchase']);
+Route::post('/purchase',[SalesController::class,'purchase']);
 // 紀谷さんに教えてもらった書き方に直してみる。こんな感じ Route::delete('/destroy/{id}',[ProductsController::class,'destroy']); 
 

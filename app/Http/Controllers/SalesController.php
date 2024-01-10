@@ -35,6 +35,7 @@ class SalesController extends Controller
         ]);
 
         $sale->save();
+    
 
         return response()->json(['message' => '購入成功']);
     }

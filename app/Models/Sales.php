@@ -11,6 +11,11 @@ class Sales extends Model
 
     //$fillableの設定はする？確認して記載するか決める。
 
+    protected $fillable = [
+
+        'product_id'
+    ];
+
     public function product()
     {
         return $this->belongsTo(Products::class);
