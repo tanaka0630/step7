@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"
+        integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
     <script src="{{ asset('js/ajaxFunction.js') }}"></script>
     <script>
         var searchUrl = "{{ route('search') }}";
@@ -60,7 +64,7 @@
 
     <table>
         <thead>
-            
+
             <tr>
                 <th id="sort_id" class="sortable" onclick="handleSortClick('id')">@sortablelink('id', 'ID')</th>
                 <th>商品画像</th>

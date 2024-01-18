@@ -20,6 +20,11 @@ class ProductsController extends Controller
     {
         $companies = Companies::all();
 
+        if ($request->ajax()){
+            // ソートの処理を handleSortClick メソッドに委譲
+            return $this->handleSortClick($request->input('sort_column'), $request->input('sort_direction'));
+        }
+
         $keyword = $request->input('keyword');
         $companyName = $request->input('company_name');
 
@@ -54,13 +59,15 @@ class ProductsController extends Controller
             $query->where('stock', '>=', $stockLower);
         }
 
-        $products = $query->sortable()->get();
+        // $products = $query->sortable()->get();
         // Log::info($products);
 
+        $products = $query->get();
 
-        if ($request->ajax()){
-            return response()->json(['products' => $products],200);
-        }
+
+        // if ($request->ajax()){
+        //     return response()->json(['products' => $products],200);
+        // }
 
 
         // 検索結果をビューに渡す
@@ -87,7 +94,7 @@ class ProductsController extends Controller
 
         $query = Products::query();
 
-        $products = $query->orderBy('created_at', 'desc')->get();
+        // $products = $query->orderBy('created_at', 'desc')->get();
 
         if (!empty($keyword)) {
             $query->where('product_name', 'like', '%' . $keyword . '%');
@@ -284,5 +291,13 @@ class ProductsController extends Controller
 
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function handleSortClick($column)
+    {
+        $direction = request()->has('direction') ? request()->input('direction') : 'asc';
+        $products = Products::sortable([$column => $direction])->paginate(10); // ページネーションの例、必要に応じて調整
+        return response()->json(['products' => $products], 200);
+        log::info($column);
     }
 }

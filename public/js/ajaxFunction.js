@@ -3,14 +3,21 @@
 
 // const { functionsIn } = require("lodash");
 
-
 $(function () {
 
     console.log("OK");
 
     //削除機能非同期
 
+    setDeleteButtonEvent();
+    console.log("検索前の削除");
+
+    initializeSort();
+
     function setDeleteButtonEvent() {
+
+        console.log("セット");
+
         $('.btn-danger').on('click', function (e) {
             e.preventDefault();
             console.log("click");
@@ -40,10 +47,13 @@ $(function () {
 
             }
         });
+
     }
 
+
+
     //検索機能非同期
-    $('#search_form').on('submit', function (e) {
+    $('#search_form').off('click').on('submit', function (e) {
         e.preventDefault();
 
         console.log('検索');
@@ -66,8 +76,8 @@ $(function () {
             data: {
                 '_token': $('meta[name="csrf-token"]').attr('content'),
                 'keyword': keyword,
-                'company_name': company_name,  // 'company_name' フィールドを追加
-                'price_upper': price_upper,    // 他の入力フィールドについても同様に追加
+                'company_name': company_name,
+                'price_upper': price_upper,
                 'price_lower': price_lower,
                 'stock_upper': stock_upper,
                 'stock_lower': stock_lower,
@@ -79,6 +89,8 @@ $(function () {
                 console.log('成功');
                 console.log('テスト', data.products);
                 displaySearchResults(data.products);
+                setDeleteButtonEvent();
+                initializeSort();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error: ' + errorThrown);
@@ -93,6 +105,70 @@ $(function () {
 
 
     });
+
+
+
+    function initializeSort() {
+        // ソート可能な要素に対してSortableを適用
+        console.log('初期化');
+        $('#result_table').sortable({
+            items: 'tr',  // ソート対象の要素を指定
+            axis: 'y',    // Y軸方向にソート
+            handle: '.sortable-handle',  // ドラッグハンドルの要素を指定
+            update: function (event, ui) {
+                // ソート完了時の処理
+                var sortedIds = $('#result_table').sortable('toArray');
+                console.log('ソート完了', sortedIds);
+
+                // ソートの順番をサーバーに送信するためのAjaxリクエストを実行
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    },
+                    type: 'POST',
+                    url: '/products/sort',
+                    dataType: 'json',
+                    data: {
+                        sortedIds: sortedIds,
+                    },
+                    success: function (data) {
+                        console.log('ソート成功', data);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('ソートエラー', errorThrown);
+                    }
+                });
+            }
+        });
+
+        $('.sortable').on('click', function () {
+            console.log('ソートセット');
+            var column = $(this).attr('id').replace('sort_', '');
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                },
+                type: 'GET',
+                url: '/products/sort/' + column,
+                dataType: 'json',
+                success: function (data) {
+                    displaySearchResults(data.products);
+                    setDeleteButtonEvent();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log('Error: ' + errorThrown);
+                    console.log("ajax通信に失敗しました");
+                    console.log("jqXHR          : " + jqXHR.status);
+                    console.log("textStatus     : " + textStatus);
+                    console.log("errorThrown    : " + errorThrown.message);
+                }
+            });
+
+
+        });
+        console.log('ソート完了')
+    }
+
 
     function displaySearchResults(products) {
         var table = $('#result_table');
@@ -138,102 +214,17 @@ $(function () {
 
             table.append(htmlString);
 
-            setDeleteButtonEvent();
-
-            console.log('表示')
             // console.log(imgPath);
             // console.log(table);
         });
 
+        console.log('表示前');
 
+        setDeleteButtonEvent();
 
-        // // ソート機能の初期化処理
-        // initializeSort();
-
-       
-
-
-       
-
-        // // カラムの現在のソート方向を取得する関数
-       
-
+        console.log('表示')
 
     }
 
-
-
-    // function handleSortClick(column) {
-    //     var currentDirection = getSortDirection(column);
-    //     var newDirection = (currentDirection === 'asc') ? 'desc' : 'asc';
-    //     console.log('スタート');
-    //     // リクエストを送信して非同期でソート結果を取得
-    //     $.ajax({
-    //         type: 'GET',
-    //         url: 'search',
-    //         dataType: 'json',
-    //         data: {
-    //             '_token': $('meta[name="csrf-token"]').attr('content'),
-    //             'sortColumn': column,
-    //             'sortDirection': newDirection,
-    //             // 他の検索条件も必要に応じて追加
-    //         },
-    //         success: function (data) {
-    //             displaySearchResults(data.products);
-    //         },
-    //         error: function (jqXHR, textStatus, errorThrown) {
-    //             console.log('Error: ' + errorThrown);
-    //             // エラー処理
-    //         }
-    //     });
-    // }
-
-    // $('.sortable').on('click', function (event) {
-    //     event.preventDefault(); // デフォルトのイベントをキャンセル
-
-    //     console.log('クリックした');
-    //     var columnName = $(this).data('column'); // データ属性からカラム名を取得
-
-    //     console.log(columnName);
-    //     (() => {
-    //         handleSortClick(columnName);
-    //     })();
-    //     console.log('クリック後');
-    // });
-
-    // function getSortDirection(column) {
-    //     var sortHeader = $('#sort_' + column);
-    //     if (sortHeader.hasClass('asc')) {
-    //         return 'asc';
-    //     } else if (sortHeader.hasClass('desc')) {
-    //         return 'desc';
-    //     } else {
-    //         return ''; // ソートされていない場合
-    //     }
-    // }
-
-
-    // function getInitialSortColumn() {
-    //     return 'id';
-    // }
-
-    // function getInitialSortOrder() {
-    //     return 'desc';
-    // }
-
-    // function initializeSort() {
-    //     var initialSortColumn = getInitialSortColumn();
-    //     var initialSortOrder = getInitialSortOrder();
-
-
-
-    //     if (initialSortColumn && initialSortOrder) {
-    //         var sortHeader = $('#sort_' + initialSortColumn);
-    //         sortHeader.addClass(initialSortOrder);
-    //         sortHeader.find('a').attr('href', sortHeader.find('a').attr('href') + '&direction=' + initialSortOrder);
-    //     }
-
-
-    // }
 
 });

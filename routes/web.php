@@ -45,7 +45,7 @@ Route::get('/products/{product}/edit', [ProductsController::class, 'edit'])->nam
 Route::put('/products/{product}', [ProductsController::class, 'update'])->name('products.update');
 
 
-
+Route::get('/products/sort/{column}', [ProductsController::class, 'handleSortClick'])->name('products.sort');
 
 // Route::get('products',[ProductsController::class]);
 
