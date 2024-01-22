@@ -8,14 +8,17 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"
         integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.0/js/jquery.tablesorter.min.js"></script>
 
     <script src="{{ asset('js/ajaxFunction.js') }}"></script>
     <script>
         var searchUrl = "{{ route('search') }}";
-        var assetPath = "{{ asset('storage/') }}";
+        var assetPath = "{{ asset('storage') }}";
         var csrfToken = '{{ csrf_token() }}';
     </script>
     <title>商品一覧画面</title>
@@ -62,15 +65,15 @@
 
     </div>
 
-    <table>
+    <table id="sort" class="tablesorter">
         <thead>
 
             <tr>
-                <th id="sort_id" class="sortable" onclick="handleSortClick('id')">@sortablelink('id', 'ID')</th>
+                <th id="sort_id" class="sortable" >ID</th>
                 <th>商品画像</th>
                 <th>商品名</th>
-                <th id="sort_price" class="sortable" onclick="handleSortClick('price')">@sortablelink('price', '価格')</th>
-                <th id="sort_stock" class="sortable" onclick="handleSortClick('stock')">@sortablelink('stock', '在庫')</th>
+                <th id="sort_price" class="sortable">価格</th>
+                <th id="sort_stock" class="sortable">在庫</th>
                 <th>メーカー名</th>
             </tr>
         </thead>

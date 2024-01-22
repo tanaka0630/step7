@@ -20,11 +20,6 @@ class ProductsController extends Controller
     {
         $companies = Companies::all();
 
-        if ($request->ajax()){
-            // ソートの処理を handleSortClick メソッドに委譲
-            return $this->handleSortClick($request->input('sort_column'), $request->input('sort_direction'));
-        }
-
         $keyword = $request->input('keyword');
         $companyName = $request->input('company_name');
 
@@ -34,8 +29,6 @@ class ProductsController extends Controller
         $stockLower = $request->input('stock_lower');
 
         $query = Products::query();
-
-        // $products = $query->orderBy('created_at', 'desc')->get();
 
 
         if (!empty($keyword)) {
@@ -59,23 +52,12 @@ class ProductsController extends Controller
             $query->where('stock', '>=', $stockLower);
         }
 
-        // $products = $query->sortable()->get();
-        // Log::info($products);
-
         $products = $query->get();
 
-
-        // if ($request->ajax()){
-        //     return response()->json(['products' => $products],200);
-        // }
-
-
+        
         // 検索結果をビューに渡す
         return view('products', compact('products', 'companies'));
         
-
-        
-
     }
 
     public function search(Request $request){
@@ -94,8 +76,6 @@ class ProductsController extends Controller
 
         $query = Products::query();
 
-        // $products = $query->orderBy('created_at', 'desc')->get();
-
         if (!empty($keyword)) {
             $query->where('product_name', 'like', '%' . $keyword . '%');
         }
@@ -119,7 +99,7 @@ class ProductsController extends Controller
 
         
 
-        $products = $query->with('company')->sortable()->get();
+        $products = $query->with('company')->get();
 
         Log::info($products);
         
@@ -293,11 +273,4 @@ class ProductsController extends Controller
         }
     }
 
-    public function handleSortClick($column)
-    {
-        $direction = request()->has('direction') ? request()->input('direction') : 'asc';
-        $products = Products::sortable([$column => $direction])->paginate(10); // ページネーションの例、必要に応じて調整
-        return response()->json(['products' => $products], 200);
-        log::info($column);
-    }
 }

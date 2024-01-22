@@ -64,8 +64,6 @@ class Products extends Model
 
         // 画像がアップロードされている場合の処理
         if ($request->hasFile('img_path')) {
-            // 以前の画像を削除する（オプション）
-            // Storage::delete($product->img_path);
 
             // 新しい画像を保存
             $path = $request->file('img_path')->store('images', 'public');

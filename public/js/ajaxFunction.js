@@ -1,18 +1,15 @@
 
-// const { find } = require("lodash");
-
-// const { functionsIn } = require("lodash");
-
 $(function () {
 
     console.log("OK");
 
     //削除機能非同期
 
-    setDeleteButtonEvent();
-    console.log("検索前の削除");
+    $("#sort").tablesorter();
 
-    initializeSort();
+    setDeleteButtonEvent();
+
+    console.log("検索前の削除");
 
     function setDeleteButtonEvent() {
 
@@ -56,6 +53,7 @@ $(function () {
     $('#search_form').off('click').on('submit', function (e) {
         e.preventDefault();
 
+
         console.log('検索');
         var keyword = $('#keyword').val();
         var company_name = $('select[name="company_name"] option:selected').val();
@@ -83,14 +81,14 @@ $(function () {
                 'stock_lower': stock_lower,
                 'ajax': true
             },
-            // data:{'_method':'search'},
+
             success: function (data) {
 
                 console.log('成功');
                 console.log('テスト', data.products);
                 displaySearchResults(data.products);
                 setDeleteButtonEvent();
-                initializeSort();
+
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error: ' + errorThrown);
@@ -108,72 +106,12 @@ $(function () {
 
 
 
-    function initializeSort() {
-        // ソート可能な要素に対してSortableを適用
-        console.log('初期化');
-        $('#result_table').sortable({
-            items: 'tr',  // ソート対象の要素を指定
-            axis: 'y',    // Y軸方向にソート
-            handle: '.sortable-handle',  // ドラッグハンドルの要素を指定
-            update: function (event, ui) {
-                // ソート完了時の処理
-                var sortedIds = $('#result_table').sortable('toArray');
-                console.log('ソート完了', sortedIds);
-
-                // ソートの順番をサーバーに送信するためのAjaxリクエストを実行
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    },
-                    type: 'POST',
-                    url: '/products/sort',
-                    dataType: 'json',
-                    data: {
-                        sortedIds: sortedIds,
-                    },
-                    success: function (data) {
-                        console.log('ソート成功', data);
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log('ソートエラー', errorThrown);
-                    }
-                });
-            }
-        });
-
-        $('.sortable').on('click', function () {
-            console.log('ソートセット');
-            var column = $(this).attr('id').replace('sort_', '');
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                },
-                type: 'GET',
-                url: '/products/sort/' + column,
-                dataType: 'json',
-                success: function (data) {
-                    displaySearchResults(data.products);
-                    setDeleteButtonEvent();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log('Error: ' + errorThrown);
-                    console.log("ajax通信に失敗しました");
-                    console.log("jqXHR          : " + jqXHR.status);
-                    console.log("textStatus     : " + textStatus);
-                    console.log("errorThrown    : " + errorThrown.message);
-                }
-            });
-
-
-        });
-        console.log('ソート完了')
-    }
-
-
     function displaySearchResults(products) {
         var table = $('#result_table');
 
         console.log(table.length, '画像');
+
+
 
         table.empty();
 
@@ -181,10 +119,15 @@ $(function () {
         $.each(products, function (index, product) {
             console.log('追加');
 
+            // assetPath の最後にスラッシュが含まれている場合は削除する
+            assetPath = assetPath.replace(/\/$/, '');
 
             var imgPath = assetPath + '/' + product.img_path;
 
+            console.log('アセットパス', assetPath);
+
             var company_name = product.company ? product.company.company_name : '';
+
 
 
             console.log('追加前img', imgPath);
@@ -208,14 +151,21 @@ $(function () {
                 '</td>' +
                 '</tr>';
 
-            // console.log('生成したHTML:', htmlString);
+
 
             console.log('追加後メーカー', company_name);
 
             table.append(htmlString);
 
-            // console.log(imgPath);
-            // console.log(table);
+            table.trigger('update');
+
+            // ソートの初期化
+            table.trigger('sortReset');
+
+            // 表示前に再度 tablesorter 適用
+            table.tablesorter();
+
+        
         });
 
         console.log('表示前');

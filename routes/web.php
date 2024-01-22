@@ -24,18 +24,16 @@ use App\Models\Products;
 Auth::routes();
 
 //商品一覧画面を表示する
-// Route::resource('products', ProductsController::class);
+
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
 
 Route::get('/products/create', [ProductsController::class, 'create'])->name('products.create');
+
 Route::post('/products', [ProductsController::class, 'store'])->name('products.store');
 
-
-
 Route::get('/products/{product}', [ProductsController::class, 'show'])->name('products.show');
-Route::delete('/products/{product}', [ProductsController::class, 'destroy'])->name('products.destroy');
 
-// Route::delete('/destroy/{id}',[ProductsController::class,'destroy']);
+Route::delete('/products/{product}', [ProductsController::class, 'destroy'])->name('products.destroy');
 
 Route::get('/search',[ProductsController::class,'search'])->name('search');
 
@@ -43,11 +41,6 @@ Route::get('/search',[ProductsController::class,'search'])->name('search');
 Route::get('/products/{product}/edit', [ProductsController::class, 'edit'])->name('products.edit');
 // 商品情報を更新
 Route::put('/products/{product}', [ProductsController::class, 'update'])->name('products.update');
-
-
-Route::get('/products/sort/{column}', [ProductsController::class, 'handleSortClick'])->name('products.sort');
-
-// Route::get('products',[ProductsController::class]);
 
 Route::resource('companies', CompaniesController::class);
 
